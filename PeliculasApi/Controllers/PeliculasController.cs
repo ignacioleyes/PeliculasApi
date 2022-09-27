@@ -12,7 +12,7 @@ namespace PeliculasApi.Controllers
 {
     [ApiController]
     [Route("api/peliculas")]
-    public class PeliculasController : ControllerBase
+    public class PeliculasController : CustomBaseController
     {
         private readonly ApplicationDbContext context;
         private readonly IMapper mapper;
@@ -24,6 +24,7 @@ namespace PeliculasApi.Controllers
             IMapper mapper,
             IAlmacenadorArchivos almacenadorArchivos,
             ILogger<PeliculasController> logger)
+            :base(context, mapper)
         {
             this.context = context;
             this.mapper = mapper;
@@ -207,51 +208,13 @@ namespace PeliculasApi.Controllers
         [HttpPatch("{id}")]
         public async Task<ActionResult> Patch(int id, [FromBody] JsonPatchDocument<PeliculaPatchDTO> patchDocument)
         {
-            if (patchDocument == null)
-            {
-                return BadRequest();
-            }
-
-            var peliculaDB = await context.Peliculas.FirstOrDefaultAsync(peli => peli.Id == id);
-
-            if (peliculaDB == null)
-            {
-                return NotFound();
-            }
-
-            var peliculaDTO = mapper.Map<PeliculaPatchDTO>(peliculaDB);
-
-            patchDocument.ApplyTo(peliculaDTO, ModelState);
-
-            var esValido = TryValidateModel(peliculaDTO);
-
-            if (!esValido)
-            {
-                return BadRequest(ModelState);
-            }
-
-            mapper.Map(peliculaDTO, peliculaDB);
-
-            await context.SaveChangesAsync();
-
-            return NoContent();
-
+            return await Patch<Pelicula, PeliculaPatchDTO>(id, patchDocument);
         }
 
         [HttpDelete("{id}")]
         public async Task<ActionResult> Delete(int id)
         {
-            var existe = await context.Peliculas.AnyAsync(peli => peli.Id == id);
-
-            if (!existe)
-            {
-                return NotFound();
-            }
-
-            context.Remove(new Pelicula() { Id = id });
-            await context.SaveChangesAsync();
-
-            return NoContent();
+           return await Delete<Pelicula>(id);
         }
     }
 }
