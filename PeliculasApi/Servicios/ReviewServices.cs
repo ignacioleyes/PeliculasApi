@@ -1,8 +1,10 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using PeliculasApi.DTOs;
 using PeliculasApi.Entidades;
+using PeliculasApi.Extensions;
 using PeliculasApi.Servicios.Interfaces;
 using System.Security.Claims;
 
@@ -13,21 +15,25 @@ namespace PeliculasApi.Servicios
         private readonly ApplicationDbContext context;
         private readonly IMapper mapper;
         private readonly ICustomBaseServices customBaseServices;
+        private readonly IActionContextAccessor actionContextAccessor;
 
         public ReviewServices(ApplicationDbContext context,
-            IMapper mapper, ICustomBaseServices customBaseServices)
+            IMapper mapper, ICustomBaseServices customBaseServices,
+            IActionContextAccessor actionContextAccessor)
         {
             this.context = context;
             this.mapper = mapper;
             this.customBaseServices = customBaseServices;
+            this.actionContextAccessor = actionContextAccessor;
         }
 
         public async Task<ActionResult<List<ReviewDTO>>> Get(int peliculaId, BaseFilter baseFilter)
         {
-            var queryable = context.Reviews.Include(x => x.Usuario).AsQueryable();
-            queryable = queryable.Where(x => x.PeliculaId == peliculaId);
-            return await customBaseServices.Get<Review, ReviewDTO>(baseFilter, queryable);
+            var reviews = context.Reviews.AsQueryable();
+            return await reviews.FilterSortPaginate<Review, ReviewDTO>(baseFilter, mapper, actionContextAccessor);
+
         }
+
 
         public async Task<ActionResult> Post(int peliculaId, [FromBody] ReviewCreacionDTO reviewCreacionDTO)
         {

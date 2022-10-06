@@ -14,14 +14,12 @@ namespace PeliculasApi.Servicios
     {
         private readonly ApplicationDbContext context;
         private readonly IMapper mapper;
-        private readonly IActionContextAccessor actionContextAccessor;
 
         public CustomBaseServices(ApplicationDbContext context,
-            IMapper mapper, IActionContextAccessor actionContextAccessor)
+            IMapper mapper)
         {
             this.context = context;
             this.mapper = mapper;
-            this.actionContextAccessor = actionContextAccessor;
         }
 
         public async Task<List<TDTO>> Get<TEntidad, TDTO>() where TEntidad : class

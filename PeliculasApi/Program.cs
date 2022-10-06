@@ -11,6 +11,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
 using PeliculasApi.Servicios.Interfaces;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,6 +23,10 @@ builder.Services.AddScoped<ICustomBaseServices, CustomBaseServices>();
 builder.Services.AddScoped<IPeliculasServices, PeliculasServices>();
 builder.Services.AddScoped<IReviewServices, ReviewServices>();
 builder.Services.AddScoped<ISalasDeCineServices, SalasDeCineServices>();
+
+builder.Services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
+
+builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
