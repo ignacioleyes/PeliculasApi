@@ -8,7 +8,7 @@ namespace PeliculasApi.Servicios
         private readonly string connectionString;
         public AlmacenadorArchivosAzure(IConfiguration configuration)
         {
-            connectionString = configuration.GetConnectionString("AzureStorage");
+            connectionString = Environment.GetEnvironmentVariable("PELICULAS_API_AZURE_STORAGE");
         }
         public async Task BorrarArchivo(string ruta, string contenedor)
         {

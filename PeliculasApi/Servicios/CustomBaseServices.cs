@@ -1,34 +1,37 @@
 ﻿using AutoMapper;
-using Azure;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using PeliculasApi.DTOs;
 using PeliculasApi.Entidades;
 using PeliculasApi.Helpers;
+using PeliculasApi.Servicios.Interfaces;
 
-namespace PeliculasApi.Controllers
+namespace PeliculasApi.Servicios
 {
-    public class CustomBaseController: ControllerBase
+    public class CustomBaseServices: ControllerBase, ICustomBaseServices
     {
         private readonly ApplicationDbContext context;
         private readonly IMapper mapper;
+        private readonly IActionContextAccessor actionContextAccessor;
 
-        public CustomBaseController(ApplicationDbContext context,
-            IMapper mapper)
+        public CustomBaseServices(ApplicationDbContext context,
+            IMapper mapper, IActionContextAccessor actionContextAccessor)
         {
             this.context = context;
             this.mapper = mapper;
+            this.actionContextAccessor = actionContextAccessor;
         }
 
-        protected async Task<List<TDTO>> Get<TEntidad, TDTO>() where TEntidad : class
+        public async Task<List<TDTO>> Get<TEntidad, TDTO>() where TEntidad : class
         {
             var entidades = await context.Set<TEntidad>().AsNoTracking().ToListAsync();
             var dtos = mapper.Map<List<TDTO>>(entidades);
             return dtos;
         }
 
-        protected async Task<ActionResult<TDTO>> Get<TEntidad, TDTO>(int id) where TEntidad : class, IId
+        public async Task<ActionResult<TDTO>> Get<TEntidad, TDTO>(int id) where TEntidad : class, IId
         {
             var entidad = await context.Set<TEntidad>().AsNoTracking().FirstOrDefaultAsync(x => x.Id == id);
 
@@ -40,24 +43,21 @@ namespace PeliculasApi.Controllers
             return mapper.Map<TDTO>(entidad);
         }
 
-        protected async Task<List<TDTO>> Get<TEntidad, TDTO>(PaginacionDTO paginacionDTO) 
+        public async Task<List<TDTO>> Get<TEntidad, TDTO>(BaseFilter baseFilter)
             where TEntidad : class
         {
             var queryable = context.Set<TEntidad>().AsQueryable();
-            return await Get<TEntidad, TDTO>(paginacionDTO, queryable);
-           
+            return await Get<TEntidad, TDTO>(baseFilter, queryable);
         }
 
-        protected async Task<List<TDTO>> Get<TEntidad, TDTO>(PaginacionDTO paginacionDTO, 
+        public async Task<List<TDTO>> Get<TEntidad, TDTO>(BaseFilter baseFilter,
             IQueryable<TEntidad> queryable)
         where TEntidad : class
         {
-            await HttpContext.InsertarParametrosPaginacion(queryable, paginacionDTO.CantidadRegistrosPorPagina);
-            var entidades = await queryable.Paginar(paginacionDTO).ToListAsync();
-            return mapper.Map<List<TDTO>>(entidades);
+            return await Get<TEntidad, TDTO>(baseFilter, queryable);
         }
 
-        protected async Task<ActionResult> Post<TCreacion, TEntidad, TLectura>
+        public async Task<ActionResult> Post<TCreacion, TEntidad, TLectura>
             (TCreacion creacionDTO, string nombreRuta) where TEntidad : class, IId
         {
             var entidad = mapper.Map<TEntidad>(creacionDTO);
@@ -68,7 +68,7 @@ namespace PeliculasApi.Controllers
             return new CreatedAtRouteResult(nombreRuta, new { id = entidad.Id }, dtoLectura);
         }
 
-        protected async Task<ActionResult> Put<TCreacion, TEntidad>
+        public async Task<ActionResult> Put<TCreacion, TEntidad>
             (int id, TCreacion creacionDTO) where TEntidad : class, IId
         {
             var entidad = mapper.Map<TEntidad>(creacionDTO);
@@ -78,9 +78,9 @@ namespace PeliculasApi.Controllers
             return NoContent();
         }
 
-        protected async Task<ActionResult> Patch<TEntidad, TDTO>(int id, JsonPatchDocument<TDTO> patchDocument)
-            where TDTO: class
-            where TEntidad: class, IId
+        public async Task<ActionResult> Patch<TEntidad, TDTO>(int id, JsonPatchDocument<TDTO> patchDocument)
+            where TDTO : class
+            where TEntidad : class, IId
         {
             if (patchDocument == null)
             {
@@ -112,7 +112,7 @@ namespace PeliculasApi.Controllers
             return NoContent();
         }
 
-        protected async Task<ActionResult> Delete<TEntidad>(int id) where TEntidad: class, IId, new()
+        public async Task<ActionResult> Delete<TEntidad>(int id) where TEntidad : class, IId, new()
         {
 
             var existe = await context.Set<TEntidad>().AnyAsync(x => x.Id == id);
@@ -127,5 +127,6 @@ namespace PeliculasApi.Controllers
 
             return NoContent();
         }
+
     }
 }
