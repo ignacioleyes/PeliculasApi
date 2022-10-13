@@ -37,4 +37,8 @@
     </EmbeddedResource>
   </ItemGroup>
 
+    <ItemGroup>
+	    <InternalsVisibleTo Include="$(AssemblyName).Test" />
+    </ItemGroup>
+
 </Project>

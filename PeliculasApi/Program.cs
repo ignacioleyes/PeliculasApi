@@ -4,14 +4,13 @@ using NetTopologySuite;
 using PeliculasApi;
 using PeliculasApi.Servicios;
 using PeliculasApi.Helpers;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
 using PeliculasApi.Servicios.Interfaces;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -82,6 +81,15 @@ opciones.AddDefaultPolicy(builder =>
 var app = builder.Build();
 
 
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    var isTest = AppDomain.CurrentDomain.GetAssemblies().Any(a => a.FullName.ToLowerInvariant().Contains("mvc.testing"));
+    if (isTest) dbContext.SeedTestData().Wait();
+}
+
+
+
 app.UseDeveloperExceptionPage();
 
 app.UseHttpsRedirection();
@@ -100,3 +108,5 @@ app.UseEndpoints(endpoints =>
 
 
 app.Run();
+
+public partial class Program { }
