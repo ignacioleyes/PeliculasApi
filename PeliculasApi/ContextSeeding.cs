@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using PeliculasApi.Entidades;
 using System.Security.Claims;
 
 namespace PeliculasApi
@@ -51,8 +52,17 @@ namespace PeliculasApi
                 ClaimValue = "User"
             };
 
+            var actor = new Actor()
+            {
+                Id = 1,
+                Nombre = "Tom Holland",
+                FechaNacimiento = DateTime.ParseExact("01/06/2006 00:00:00", "dd/MM/yyyy HH:mm:ss", null),
+            };
+
             await context.UserClaims.AddRangeAsync(new IdentityUserClaim<string>[] { userClaim, adminClaim });
             await context.Users.AddRangeAsync(new IdentityUser[] { usuarioAdmin, usuarioUser });
+
+            await context.Actores.AddAsync(actor);
 
             await context.SaveChangesAsync();
         }
