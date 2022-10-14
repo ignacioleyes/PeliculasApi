@@ -23,7 +23,7 @@ namespace PeliculasApi.Controllers
         [HttpGet]
         public async Task<ActionResult<List<ActorDTO>>> Get([FromQuery] BaseFilter baseFilter)
         {
-            return await customBaseServices.Get<Actor, ActorDTO>();
+            return await actoresServices.Get(baseFilter);
         }
 
         [HttpGet("{id}", Name = "obtenerActor")]

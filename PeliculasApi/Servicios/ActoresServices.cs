@@ -1,8 +1,11 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using PeliculasApi.DTOs;
 using PeliculasApi.Entidades;
+using PeliculasApi.Extensions;
 using PeliculasApi.Servicios.Interfaces;
 
 namespace PeliculasApi.Servicios
@@ -12,13 +15,23 @@ namespace PeliculasApi.Servicios
         private readonly ApplicationDbContext context;
         private readonly IMapper mapper;
         private readonly IAlmacenadorArchivos almacenadorArchivos;
+        private readonly IActionContextAccessor actionContextAccessor;
         private readonly string contenedor = "actores";
 
-        public ActoresServices(ApplicationDbContext context, IMapper mapper, IAlmacenadorArchivos almacenadorArchivos)
+        public ActoresServices(ApplicationDbContext context, IMapper mapper, 
+            IAlmacenadorArchivos almacenadorArchivos,
+            IActionContextAccessor actionContextAccessor)
         {
             this.context = context;
             this.mapper = mapper;
             this.almacenadorArchivos = almacenadorArchivos;
+            this.actionContextAccessor = actionContextAccessor;
+        }
+
+        public async Task<ActionResult<List<ActorDTO>>> Get(BaseFilter baseFilter)
+        {
+            var queryable = context.Actores.AsQueryable();
+            return await queryable.FilterSortPaginate<Actor, ActorDTO>(baseFilter, mapper, actionContextAccessor);
         }
 
         public async Task<ActionResult> Post(ActorCreacionDTO actorCreacionDTO)
